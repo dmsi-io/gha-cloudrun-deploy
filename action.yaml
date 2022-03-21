@@ -1,0 +1,100 @@
+name: 'Deploy Cloud Run Application'
+description: 'Facilitates the deployment of applications to Cloud Run for both normal production deployment and PR feature branch deployment'
+
+inputs:
+  GCP_SA_KEY:
+    description: 'GCP Service Account Key (JSON)'
+    required: true
+  GCP_PROJECT_ID:
+    description: 'GCP Project ID'
+    required: true
+  REGISTRY_HOSTNAME:
+    description: 'Hostname of Container Registry'
+    default: 'gcr.io'
+    required: false
+  port:
+    description: 'Port of Docker image to receive traffic'
+    default: '80'
+    required: false
+
+outputs:
+  url:
+    description: 'URL'
+    value: ${{ steps.deploy_url.outputs.url }}
+
+runs:
+  using: composite
+  steps:
+    - name: Export Environment Variables
+      uses: dmsi-io/gha-env-variables@v1.2
+      id: variables
+      with:
+        TLD: ${{ inputs.TLD }}
+        GCP_PROJECT_ID: ${{ inputs.GCP_PROJECT_ID }}
+
+    ###### GCloud Setup ######
+
+    - name: Setup GCloud Auth
+      id: auth
+      uses: google-github-actions/auth@v0
+      with:
+        credentials_json: ${{ inputs.GCP_SA_KEY }}
+        token_format: 'access_token'
+
+    - uses: 'docker/login-action@v1'
+      with:
+        registry: ${{ inputs.REGISTRY_HOSTNAME }}
+        username: 'oauth2accesstoken'
+        password: '${{ steps.auth.outputs.access_token }}'
+
+    ###### Publish Docker Image ######
+
+    - name: Containerize
+      run: docker build -t ${{ steps.variables.outputs.build_image }} .
+      shell: bash
+
+    - name: Publish
+      run: docker push ${{ steps.variables.outputs.build_image }}
+      shell: bash
+
+    ###### Deploy Cloud Run ######
+
+    - name: Deploy PR to Cloud Run
+      if: github.event_name == 'pull_request'
+      id: deploy_pr
+      uses: google-github-actions/deploy-cloudrun@v0
+      with:
+        service: ${{ steps.variables.outputs.service_name }}
+        image: ${{ steps.variables.outputs.build_image }}
+        tag: pr-${{ github.event.pull_request.number }}
+        no_traffic: true
+        flags: '--port=${{ inputs.port }} --allow-unauthenticated'
+
+    - name: Deploy to Cloud Run
+      if: github.event_name != 'pull_request'
+      id: deploy
+      uses: google-github-actions/deploy-cloudrun@v0
+      with:
+        service: ${{ steps.variables.outputs.service_name }}
+        image: ${{ steps.variables.outputs.build_image }}
+        flags: '--port=${{ inputs.port }} --allow-unauthenticated'
+
+    - name: Update traffic to latest
+      if: github.event_name != 'pull_request'
+      uses: google-github-actions/deploy-cloudrun@v0
+      with:
+        service: ${{ steps.variables.outputs.service_name }}
+        image: ${{ steps.variables.outputs.build_image }}
+        revision_traffic: LATEST=100
+
+    - name: Output Deployment URL
+      id: deploy_url
+      run: |
+        if [ -n "${{ steps.deploy_pr.outputs.url }}" ]; then
+          echo "::set-output name=url::${{ steps.deploy_pr.outputs.url }}"
+
+        else
+          echo "::set-output name=url::${{ steps.deploy.outputs.url }}"
+
+        fi
+      shell: bash
