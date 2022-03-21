@@ -12,6 +12,10 @@ inputs:
     description: 'Hostname of Container Registry'
     default: 'gcr.io'
     required: false
+  port:
+    description: 'Port of Docker image to receive traffic'
+    default: '80'
+    required: false
 
 outputs:
   url:
@@ -64,6 +68,7 @@ runs:
         image: ${{ steps.variables.outputs.build_image }}
         tag: pr-${{ github.event.pull_request.number }}
         no_traffic: true
+        flags: '--port=${{ inputs.port }} --allow-unauthenticated'
 
     - name: Deploy to Cloud Run
       if: github.event_name != 'pull_request'
@@ -72,6 +77,7 @@ runs:
       with:
         service: ${{ steps.variables.outputs.service_name }}
         image: ${{ steps.variables.outputs.build_image }}
+        flags: '--port=${{ inputs.port }} --allow-unauthenticated'
 
     - name: Update traffic to latest
       if: github.event_name != 'pull_request'
