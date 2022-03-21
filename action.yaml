@@ -72,6 +72,13 @@ runs:
       with:
         service: ${{ steps.variables.outputs.service_name }}
         image: ${{ steps.variables.outputs.build_image }}
+
+    - name: Update traffic to latest
+      if: github.event_name != 'pull_request'
+      uses: google-github-actions/deploy-cloudrun@v0
+      with:
+        service: ${{ steps.variables.outputs.service_name }}
+        image: ${{ steps.variables.outputs.build_image }}
         revision_traffic: LATEST=100
 
     - name: Output Deployment URL
