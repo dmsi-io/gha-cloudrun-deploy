@@ -15,7 +15,9 @@ jobs:
     name: Build and Deploy to Cloud Run
     runs-on: ubuntu-latest
 
-    permissions: read-all
+    permissions:
+      contents: 'read'
+      id-token: 'write'
 
     steps:
       - name: Checkout Repo
