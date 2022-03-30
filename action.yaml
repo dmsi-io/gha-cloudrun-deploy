@@ -11,6 +11,7 @@ inputs:
   GCP_SA_KEY:
     description: 'GCP Service Account Key (JSON)'
     required: false
+    deprecationMessage: 'It is recommended to instead use Workload Identity Federation with the GCP_IDENTITY_PROVIDER and GCP_SERVICE_ACCOUNT inputs.'
   GCP_PROJECT_ID:
     description: 'GCP Project ID'
     required: true
