@@ -15,12 +15,16 @@ To make use of the feature branches, use this action with a pull_request trigger
 
 ## Inputs
 
-| NAME                | DESCRIPTION                              | TYPE      | REQUIRED | DEFAULT  |
-| ------------------- | ---------------------------------------- | --------- | -------- | -------- |
-| `GCP_SA_KEY`        | GCP Service Account Key (JSON),          | `string`  | `true`   |          |
-| `GCP_PROJECT_ID`    | GCP Project ID.                          | `string`  | `true`   |          |
-| `REGISTRY_HOSTNAME` | Hostname of Container Registry.          | `string`  | `false`  | `gcr.io` |
-| `port`              | Port of Docker image to receive traffic. | `integer` | `false`  | `80`     |
+| NAME                    | DESCRIPTION                              | TYPE      | REQUIRED | DEFAULT  |
+| ----------------------- | ---------------------------------------- | --------- | -------- | -------- |
+| `GCP_IDENTITY_PROVIDER` | GCP Workload Identity Provider.          | `string`  | `true`\* |          |
+| `GCP_SERVICE_ACCOUNT`   | GCP Service Account email.               | `string`  | `true`\* |          |
+| `GCP_SA_KEY`            | GCP Service Account Key (JSON).          | `string`  | `true`\* |          |
+| `GCP_PROJECT_ID`        | GCP Project ID.                          | `string`  | `true`   |          |
+| `REGISTRY_HOSTNAME`     | Hostname of Container Registry.          | `string`  | `false`  | `gcr.io` |
+| `port`                  | Port of Docker image to receive traffic. | `integer` | `false`  | `80`     |
+
+> It is recommended to use Workload Identity Federation with the `GCP_IDENTITY_PROVIDER` and `GCP_SERVICE_ACCOUNT` inputs. `GCP_SA_KEY` will still work with `v1` tags.
 
 ## Outputs
 
@@ -29,6 +33,42 @@ To make use of the feature branches, use this action with a pull_request trigger
 | `url` | The URL to the deployed application. | `string` |
 
 ## Example
+
+```yaml
+name: Google Cloud Run Revision Deploy
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-deploy:
+    name: Build and Deploy to Cloud Run
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+
+      # any pre-docker build steps will be placed here
+
+      - name: Run self
+        uses: dmsi-io/gha-cloudrun-deploy@main
+        id: deploy
+        with:
+          GCP_IDENTITY_PROVIDER: ${{ secrets.GCP_IDENTITY_PROVIDER }}
+          GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+```
+
+> Workload Identity Federation requires access to the id-token permission and thus the outlined permissions in the example above are required.
+
+#### With Service Account Credentials JSON
 
 ```yaml
 name: Google Cloud Run Revision Deploy

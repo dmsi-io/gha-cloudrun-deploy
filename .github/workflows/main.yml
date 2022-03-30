@@ -15,6 +15,10 @@ jobs:
     name: Build and Deploy to Cloud Run
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2
@@ -23,7 +27,8 @@ jobs:
         uses: ./
         id: deploy
         with:
-          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+          GCP_IDENTITY_PROVIDER: ${{ secrets.GCP_IDENTITY_PROVIDER }}
+          GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
 
       - name: Print URL

@@ -2,9 +2,16 @@ name: 'Deploy Cloud Run Application'
 description: 'Facilitates the deployment of applications to Cloud Run for both normal production deployment and PR feature branch deployment'
 
 inputs:
+  GCP_IDENTITY_PROVIDER:
+    description: 'GCP Workload Identity Provider'
+    required: false
+  GCP_SERVICE_ACCOUNT:
+    description: 'GCP Service Account email'
+    required: false
   GCP_SA_KEY:
     description: 'GCP Service Account Key (JSON)'
-    required: true
+    required: false
+    deprecationMessage: 'It is recommended to instead use Workload Identity Federation with the GCP_IDENTITY_PROVIDER and GCP_SERVICE_ACCOUNT inputs.'
   GCP_PROJECT_ID:
     description: 'GCP Project ID'
     required: true
@@ -38,6 +45,8 @@ runs:
       id: auth
       uses: google-github-actions/auth@v0
       with:
+        workload_identity_provider: ${{ inputs.GCP_IDENTITY_PROVIDER }}
+        service_account: ${{ inputs.GCP_SERVICE_ACCOUNT }}
         credentials_json: ${{ inputs.GCP_SA_KEY }}
         token_format: 'access_token'
 
@@ -49,13 +58,11 @@ runs:
 
     ###### Publish Docker Image ######
 
-    - name: Containerize
-      run: docker build -t ${{ steps.variables.outputs.build_image }} .
-      shell: bash
-
-    - name: Publish
-      run: docker push ${{ steps.variables.outputs.build_image }}
-      shell: bash
+    - name: Build and push
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        tags: ${{ steps.variables.outputs.build_image }}
 
     ###### Deploy Cloud Run ######
 
