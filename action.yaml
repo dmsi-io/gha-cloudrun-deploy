@@ -58,11 +58,13 @@ runs:
 
     ###### Publish Docker Image ######
 
-    - name: Build and push
-      uses: docker/build-push-action@v2
-      with:
-        push: true
-        tags: ${{ steps.variables.outputs.build_image }}
+    - name: Containerize
+      run: docker build -t ${{ steps.variables.outputs.build_image }} .
+      shell: bash
+
+    - name: Publish
+      run: docker push ${{ steps.variables.outputs.build_image }}
+      shell: bash
 
     ###### Deploy Cloud Run ######
 
