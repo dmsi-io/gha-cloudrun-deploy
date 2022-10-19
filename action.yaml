@@ -100,10 +100,10 @@ runs:
       id: deploy_url
       run: |
         if [ -n "${{ steps.deploy_pr.outputs.url }}" ]; then
-          echo "::set-output name=url::${{ steps.deploy_pr.outputs.url }}"
+          echo "url=${{ steps.deploy_pr.outputs.url }}" >> $GITHUB_OUTPUT
 
         else
-          echo "::set-output name=url::${{ steps.deploy.outputs.url }}"
+          echo "url=${{ steps.deploy.outputs.url }}" >> $GITHUB_OUTPUT
 
         fi
       shell: bash
