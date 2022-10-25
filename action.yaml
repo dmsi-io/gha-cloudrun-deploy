@@ -33,7 +33,7 @@ runs:
   using: composite
   steps:
     - name: Export Environment Variables
-      uses: dmsi-io/gha-env-variables@v1
+      uses: dmsi-io/gha-env-variables@main
       id: variables
       with:
         TLD: ${{ inputs.TLD }}
