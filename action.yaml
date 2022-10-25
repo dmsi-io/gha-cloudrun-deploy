@@ -38,13 +38,6 @@ runs:
       with:
         TLD: ${{ inputs.TLD }}
         GCP_PROJECT_ID: ${{ inputs.GCP_PROJECT_ID }}
-    
-    - name: Print outputs
-      run: |
-        echo "OUTPUTS=$OUTPUTS"
-      shell: bash
-      env:
-        OUTPUTS: ${{ toJSON(steps.variables.outputs) }}
 
     ###### GCloud Setup ######
 
