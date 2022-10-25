@@ -35,7 +35,7 @@ jobs:
         run: echo "${{ steps.deploy.outputs.url }}"
 
       - name: Pull Request Comments
-        uses: dmsi-io/gha-pull-request@v1.x
+        uses: dmsi-io/gha-pull-request@v1
         with:
           GHA_ACCESS_TOKEN: ${{ secrets.PUBLIC_GHA_ACCESS_TOKEN }}
           url: ${{ steps.deploy.outputs.url }}
