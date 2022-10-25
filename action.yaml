@@ -50,7 +50,7 @@ runs:
         credentials_json: ${{ inputs.GCP_SA_KEY }}
         token_format: 'access_token'
 
-    - uses: docker/login-action@v1
+    - uses: docker/login-action@v2
       with:
         registry: ${{ inputs.REGISTRY_HOSTNAME }}
         username: 'oauth2accesstoken'
