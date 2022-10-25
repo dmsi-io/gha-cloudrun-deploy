@@ -42,6 +42,7 @@ runs:
     - name: Print outputs
       run: |
         echo "OUTPUTS=$OUTPUTS"
+      shell: bash
       env:
         OUTPUTS: ${{ toJSON(steps.variables.outputs) }}
 
